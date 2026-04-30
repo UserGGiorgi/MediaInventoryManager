@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediaInventoryManager.Services;
+using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
@@ -9,10 +10,14 @@ namespace MediaInventoryManager.Controllers
     [Route("api/upload")]
     public class UploadController : ControllerBase
     {
+        private readonly ProductCacheService _cacheService;
         private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png", "image/webp" };
         private const long MaxFileSize = 5 * 1024 * 1024;
         private const int MaxWidth = 800;
-
+        public UploadController(ProductCacheService cacheService)
+        {
+            _cacheService = cacheService;
+        }
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile image)
         {
@@ -48,7 +53,7 @@ namespace MediaInventoryManager.Controllers
                     Quality = 80
                 });
             }
-
+            _cacheService.Invalidate();
             return Ok(new { fileName = uniqueFileName });
         }
     }
