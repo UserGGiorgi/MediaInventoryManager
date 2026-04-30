@@ -7,6 +7,11 @@
 <div class="max-w-6xl mx-auto py-8 px-4">
     <h1 class="text-3xl font-bold mb-8">Media Inventory</h1>
 
+    <div class="mb-6">
+        <input type="text" id="search-input" placeholder="Search products..."
+               class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+    </div>
+
     @await Component.InvokeAsync("ProductList")
 
     <nav id="pagination-container" class="flex justify-center mt-6">
@@ -48,7 +53,6 @@
     <script>
         document.getElementById('product-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const form = e.target;
             const messageDiv = document.getElementById('form-message');
             messageDiv.innerHTML = '';
 
@@ -101,33 +105,44 @@
 
         const LIMIT = 10;
 
-        function getPageFromUrl() {
+        function getParamsFromUrl() {
             const params = new URLSearchParams(window.location.search);
-            return parseInt(params.get('page')) || 1;
+            return {
+                page: parseInt(params.get('page')) || 1,
+                search: params.get('search') || ''
+            };
         }
 
-        function updateUrl(page) {
+        function updateUrl(page, search) {
             const url = new URL(window.location);
-            url.searchParams.set('page', page);
+            if (page > 1) url.searchParams.set('page', page);
+            else url.searchParams.delete('page');
+
+            if (search) url.searchParams.set('search', search);
+            else url.searchParams.delete('search');
+
             window.history.pushState({}, '', url);
         }
 
-        async function fetchProducts(page) {
-            const response = await fetch(`/api/products?page=${page}&limit=${LIMIT}`);
+        async function fetchProducts(page, search) {
+            let url = `/api/products?page=${page}&limit=${LIMIT}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch');
             return await response.json();
         }
 
-        function renderProducts(products) {
+                function renderProducts(products) {
             const container = document.getElementById('product-list');
             if (!container) return;
 
             if (products.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 mt-4">No products yet. Add one using the form below.</p>';
+                container.innerHTML = '<p class="text-gray-500 mt-4">No products found.</p>';
                 return;
             }
 
-            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+            // Build card HTML directly, no outer <div class="grid...">
+            let html = '';
             products.forEach(p => {
                 html += `
                     <div class="border rounded-lg p-4 shadow-sm bg-white">
@@ -139,15 +154,12 @@
                     </div>
                 `;
             });
-            html += '</div>';
             container.innerHTML = html;
         }
 
-        function renderPagination(totalPages, currentPage) {
+        function renderPagination(totalPages, currentPage, search) {
             const container = document.getElementById('pagination-container');
-            if (!container) return;
-
-            if (totalPages <= 1) {
+            if (!container || totalPages <= 1) {
                 container.innerHTML = '';
                 return;
             }
@@ -165,24 +177,40 @@
             container.querySelectorAll('button[data-page]').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const page = parseInt(btn.dataset.page);
-                    updateUrl(page);
-                    const data = await fetchProducts(page);
+                    updateUrl(page, search);
+                    const data = await fetchProducts(page, search);
                     renderProducts(data.data);
-                    renderPagination(data.totalPages, page);
+                    renderPagination(data.totalPages, page, search);
                 });
             });
         }
 
+        let searchTimeout;
+        document.getElementById('search-input').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const searchValue = this.value.trim();
+            searchTimeout = setTimeout(async () => {
+                const page = 1;
+                updateUrl(page, searchValue);
+                const data = await fetchProducts(page, searchValue);
+                renderProducts(data.data);
+                renderPagination(data.totalPages, page, searchValue);
+            }, 300);
+        });
+
         (async function init() {
-            const currentPage = getPageFromUrl();
-            if (currentPage === 1) {
-                const data = await fetchProducts(1);
-                renderPagination(data.totalPages, 1);
+            const { page, search } = getParamsFromUrl();
+            const searchInput = document.getElementById('search-input');
+            if (search) searchInput.value = search;
+
+            if (page === 1 && !search) {
+                const data = await fetchProducts(1, '');
+                renderPagination(data.totalPages, 1, '');
             } else {
                 try {
-                    const data = await fetchProducts(currentPage);
+                    const data = await fetchProducts(page, search);
                     renderProducts(data.data);
-                    renderPagination(data.totalPages, currentPage);
+                    renderPagination(data.totalPages, page, search);
                 } catch (err) {
                     document.getElementById('product-list').innerHTML =
                         '<p class="text-red-500">Failed to load products.</p>';

@@ -19,17 +19,26 @@ public class ProductsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetProducts(
-        [FromQuery] int page = 1,
-        [FromQuery] int limit = 10)
+    [FromQuery] int page = 1,
+    [FromQuery] int limit = 10,
+    [FromQuery] string? search = null)
     {
         if (page < 1)
             return BadRequest("Page must be greater than 0.");
         if (limit < 1 || limit > 100)
             return BadRequest("Limit must be between 1 and 100.");
 
-        int totalItems = await _context.Products.CountAsync();
+        var query = _context.Products.AsQueryable();
 
-        var products = await _context.Products
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            string searchLower = search.ToLower();
+            query = query.Where(p => p.Title.ToLower().Contains(searchLower));
+        }
+
+        int totalItems = await query.CountAsync();
+
+        var products = await query
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * limit)
             .Take(limit)
