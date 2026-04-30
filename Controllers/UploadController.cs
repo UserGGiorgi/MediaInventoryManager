@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace MediaInventoryManager.Controllers
 {
@@ -6,11 +9,9 @@ namespace MediaInventoryManager.Controllers
     [Route("api/upload")]
     public class UploadController : ControllerBase
     {
-        // Allowed image MIME types
         private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png", "image/webp" };
-
-        // Max file size (5 MB)
         private const long MaxFileSize = 5 * 1024 * 1024;
+        private const int MaxWidth = 800;
 
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile image)
@@ -24,16 +25,28 @@ namespace MediaInventoryManager.Controllers
             if (!AllowedContentTypes.Contains(image.ContentType.ToLower()))
                 return BadRequest("Invalid file type. Only JPEG, PNG, and WebP images are allowed.");
 
-            string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
-
             string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             Directory.CreateDirectory(uploadsFolder);
 
+            string uniqueFileName = Guid.NewGuid().ToString() + ".webp";
             string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            using (var stream = image.OpenReadStream())
+            using (var img = await Image.LoadAsync(stream))
             {
-                await image.CopyToAsync(stream);
+                if (img.Width > MaxWidth)
+                {
+                    img.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Mode = ResizeMode.Max,
+                        Size = new Size(MaxWidth, 0) 
+                    }));
+                }
+
+                await img.SaveAsync(filePath, new WebpEncoder
+                {
+                    Quality = 80
+                });
             }
 
             return Ok(new { fileName = uniqueFileName });
