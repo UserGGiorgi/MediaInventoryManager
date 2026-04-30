@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediaInventoryManager.Data;
+using MediaInventoryManager.Middlewares;
 using MediaInventoryManager.Services;
 using MediaInventoryManager.Validators;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<ProductCreateValidator>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 var app = builder.Build();
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");

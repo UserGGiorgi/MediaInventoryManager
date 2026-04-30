@@ -4,53 +4,79 @@
     ViewData["Title"] = "Media Inventory Manager";
 }
 
-<div class="max-w-6xl mx-auto py-8 px-4">
-    <h1 class="text-3xl font-bold mb-8">Media Inventory</h1>
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
 
-    <div class="mb-6">
-        <input type="text" id="search-input" placeholder="Search products..."
-               class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-    </div>
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">
+                📸 Media Inventory
+            </h1>
+            <p class="mt-2 text-gray-500">Manage your products with style</p>
+        </div>
 
-    @await Component.InvokeAsync("ProductList")
+        <!-- Search Bar -->
+        <div class="max-w-xl mx-auto mb-10">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" id="search-input" placeholder="Search products..."
+                       class="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200 bg-white/90 backdrop-blur-sm" />
+            </div>
+        </div>
 
-    <nav id="pagination-container" class="flex justify-center mt-6">
-    </nav>
+        <!-- Server-rendered product list (first page) -->
+        @await Component.InvokeAsync("ProductList")
 
-    <div class="mt-10 border-t pt-6">
-        <h2 class="text-2xl font-semibold mb-4">Add New Product</h2>
-        <form id="product-form" class="space-y-4 max-w-lg">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Title</label>
-                <input type="text" name="title" id="title" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+        <!-- Pagination container -->
+        <nav id="pagination-container" class="flex justify-center mt-10">
+        </nav>
+
+        <!-- Add Product Form -->
+        <div class="mt-16 max-w-2xl mx-auto">
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="text-2xl">➕</span> Add New Product
+                </h2>
+                <form id="product-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <input type="text" name="title" id="title" required
+                               class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all duration-200" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea name="description" id="description" rows="2"
+                                  class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all duration-200"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                        <input type="number" step="0.01" name="price" id="price" required
+                               class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-all duration-200" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                        <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/webp" required
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-indigo-500 file:to-purple-500 file:text-white hover:file:from-indigo-600 hover:file:to-purple-600 transition-all duration-200" />
+                    </div>
+                    <button type="submit"
+                            class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transform hover:scale-[1.02] transition-all duration-200">
+                        Add Product
+                    </button>
+                </form>
+                <div id="form-message" class="mt-4 text-sm font-medium text-center"></div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" id="description" rows="2"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Price</label>
-                <input type="number" step="0.01" name="price" id="price" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Image</label>
-                <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/webp" required
-                       class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-            </div>
-            <button type="submit"
-                    class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                Add Product
-            </button>
-        </form>
-        <div id="form-message" class="mt-4 text-sm"></div>
+        </div>
+
     </div>
 </div>
 
 @section Scripts {
     <script>
+        // ---------- Product Form Submit ----------
         document.getElementById('product-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const messageDiv = document.getElementById('form-message');
@@ -103,6 +129,7 @@
             }
         });
 
+        // ---------- Pagination + Search ----------
         const LIMIT = 10;
 
         function getParamsFromUrl() {
@@ -117,10 +144,8 @@
             const url = new URL(window.location);
             if (page > 1) url.searchParams.set('page', page);
             else url.searchParams.delete('page');
-
             if (search) url.searchParams.set('search', search);
             else url.searchParams.delete('search');
-
             window.history.pushState({}, '', url);
         }
 
@@ -132,25 +157,37 @@
             return await response.json();
         }
 
-                function renderProducts(products) {
+        function renderProducts(products) {
             const container = document.getElementById('product-list');
             if (!container) return;
 
             if (products.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 mt-4">No products found.</p>';
+                container.innerHTML = '<p class="text-gray-500 text-center mt-8">No products found.</p>';
                 return;
             }
 
-            // Build card HTML directly, no outer <div class="grid...">
+            // Cards are rendered directly inside #product-list (which already has the grid classes from ViewComponent)
             let html = '';
             products.forEach(p => {
                 html += `
-                    <div class="border rounded-lg p-4 shadow-sm bg-white">
-                        ${p.imageFileName ? `<img src="/uploads/${p.imageFileName}" alt="${p.title}" class="w-full h-48 object-cover rounded mb-3" />` : ''}
-                        <h3 class="text-lg font-semibold">${p.title}</h3>
-                        <p class="text-sm text-gray-600">${p.description || ''}</p>
-                        <p class="text-green-700 font-bold mt-2">$${p.price.toFixed(2)}</p>
-                        <p class="text-xs text-gray-400 mt-1">${new Date(p.createdAt).toLocaleString()}</p>
+                    <div class="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-indigo-100 transform hover:-translate-y-1">
+                        ${p.imageFileName ?
+                            `<div class="overflow-hidden h-48">
+                                <img src="/uploads/${p.imageFileName}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            </div>`
+                            :
+                            `<div class="h-48 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                                <span class="text-gray-400 text-lg">No Image</span>
+                            </div>`
+                        }
+                        <div class="p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 truncate">${p.title}</h3>
+                            <p class="text-sm text-gray-500 mt-1 line-clamp-2">${p.description || ''}</p>
+                            <div class="flex items-center justify-between mt-4">
+                                <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">$${p.price.toFixed(2)}</span>
+                                <span class="text-xs text-gray-400">${new Date(p.createdAt).toLocaleString()}</span>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -164,12 +201,12 @@
                 return;
             }
 
-            let html = '<div class="flex space-x-2">';
+            let html = '<div class="flex flex-wrap justify-center gap-2">';
             for (let i = 1; i <= totalPages; i++) {
                 const activeClass = i === currentPage
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50';
-                html += `<button class="px-4 py-2 rounded ${activeClass}" data-page="${i}">${i}</button>`;
+                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-indigo-300';
+                html += `<button class="px-4 py-2 rounded-xl font-medium transition-all duration-200 ${activeClass}" data-page="${i}">${i}</button>`;
             }
             html += '</div>';
             container.innerHTML = html;
@@ -185,12 +222,13 @@
             });
         }
 
+        // Search with debounce
         let searchTimeout;
         document.getElementById('search-input').addEventListener('input', function() {
             clearTimeout(searchTimeout);
             const searchValue = this.value.trim();
             searchTimeout = setTimeout(async () => {
-                const page = 1;
+                const page = 1; // reset to first page on new search
                 updateUrl(page, searchValue);
                 const data = await fetchProducts(page, searchValue);
                 renderProducts(data.data);
@@ -198,12 +236,14 @@
             }, 300);
         });
 
+        // Init
         (async function init() {
             const { page, search } = getParamsFromUrl();
             const searchInput = document.getElementById('search-input');
             if (search) searchInput.value = search;
 
             if (page === 1 && !search) {
+                // Server already rendered first page – just attach pagination
                 const data = await fetchProducts(1, '');
                 renderPagination(data.totalPages, 1, '');
             } else {
@@ -213,7 +253,7 @@
                     renderPagination(data.totalPages, page, search);
                 } catch (err) {
                     document.getElementById('product-list').innerHTML =
-                        '<p class="text-red-500">Failed to load products.</p>';
+                        '<p class="text-red-500 text-center">Failed to load products.</p>';
                 }
             }
         })();
